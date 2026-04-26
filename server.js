@@ -7,7 +7,7 @@ app.use(express.json());
 
 // ─── YOUR HUGGING FACE KEY ───────────────────────────────────────────────────
 const HF_API_KEY = process.env.HF_API_KEY;
-const HF_MODEL = "mistralai/Mixtral-8x7B-Instruct-v0.1";
+const HF_MODEL = "facebook/blenderbot-400M-distill";
 const HF_URL = `https://api-inference.huggingface.co/models/${HF_MODEL}`;
 
 // ─── PERSONA SYSTEM PROMPTS ──────────────────────────────────────────────────
