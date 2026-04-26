@@ -2,10 +2,7 @@ const express = require("express");
 const cors = require("cors");
 
 const app = express();
-app.use(cors({
-  origin: "https://vibe-reply-frontend.vercel.app",
-  methods: ["POST", "GET"],
-}));
+app.use(cors());
 app.use(express.json());
 
 // ─── YOUR HUGGING FACE KEY ───────────────────────────────────────────────────
