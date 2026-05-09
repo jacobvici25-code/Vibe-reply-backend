@@ -5,88 +5,20 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ─── GROQ CONFIG ─────────────────────────────────────────────────────────────
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 const GROQ_MODEL = "llama-3.1-8b-instant";
 
-// ─── PERSONA PROMPTS ─────────────────────────────────────────────────────────
 const PERSONA_PROMPTS = {
-  Casual: `You are helping someone reply to a message they received.
-You must reply AS THEM — like you ARE that person in their exact situation.
-Read their situation carefully and reply like a real, chill person would.
-Sound natural, relaxed, like texting a friend. Use contractions, be real.
-If they're beefing with someone — reply with that energy.
-If someone insulted them — clap back casually.
-If it's a friendly message — keep it warm and chill.
-Never sound robotic. Never be generic. Always be specific to their situation.
-Keep it short and real. No long paragraphs.
-ALWAYS include relevant emojis naturally in the reply — like 😂 😭 💀 🔥 😎 👀 — use 1-3 emojis max.`,
-
-  Business: `You are helping someone reply to a professional message they received.
-You must reply AS THEM — like you ARE that person in their exact work situation.
-Read their situation carefully and reply like a sharp professional would.
-Sound confident, polished, and direct. Proper grammar always.
-If there's a conflict — handle it professionally but firmly.
-If it's a request — respond clearly and efficiently.
-Never sound weak or overly apologetic. Always be in control.
-Keep it concise and professional.
-Use minimal professional emojis where appropriate — like 🤝 📊 ✅ — use 1 emoji max or none if too formal.`,
-
-  Flirty: `You are helping someone reply to a message from someone they like.
-You must reply AS THEM — like you ARE that person in their exact situation.
-Read their situation carefully and reply like a confident, charming person would.
-Be playful, warm, a little teasing but never inappropriate.
-If someone is being forward — match their energy smartly.
-If someone is being cold — make them warm up.
-Always keep it tasteful and exciting.
-Keep it short, sweet and interesting.
-ALWAYS include cute flirty emojis — like 💜 🥹 😍 😏 🌹 💫 ✨ — use 1-3 emojis naturally.`,
-
-  Aura: `You are helping someone reply to a message they received.
-You must reply AS THEM — like you ARE that person in their exact situation.
-Read their situation carefully and reply like a mysterious, unbothered person would.
-Use minimal words with maximum impact. Be smooth and confident.
-Never seem desperate or too eager. Always seem like you have better things to do.
-If someone disrespects them — reply with cold unbothered energy.
-If someone praises them — receive it with calm confidence.
-Keep it very short. Sometimes one line is enough.
-Use very minimal emojis — only cool ones like ✨ 🖤 💫 — maximum 1 emoji or none at all.`,
-
-Naija: `You are a Nigerian person replying to a WhatsApp or DM message AS YOURSELF.
-Speak in natural raw Lagos Pidgin English like real Gen Z Lagos street people actually text.
-If they disrespect you — clap back with smart no-mumu energy.
-If they are friendly — reply warm playful and supportive but still very Naija.
-If they are sad or serious — be calm show empathy but still in pidgin.
-Keep it short 1-3 lines max. Real people no dey type essay for WhatsApp.
-Use real Lagos slang naturally: omo, guy, abeg, wahala, e don do, na so e be, shey you get, I no send, make e no vex, chai, tueh, shebi, my guy, na lie, e pain me, dem no fit, shey you dey mad.
-Mix English and Pidgin naturally. Never sound like a foreigner learning pidgin.
-Add 2-3 emojis max where it fits naturally like 😂 🔥 💀 😭 🇳🇬
-Be confident not arrogant. Be warm not soft. Be real not rude.`,
-
-  UK: `You are helping someone reply to a message they received.
-You must reply AS THEM — like you ARE that person in their exact situation.
-Read their situation carefully and reply like a real London roadman would.
-Use UK slang — "innit", "fam", "bare", "mandem", "peak", "peng", "wagwan", "bruv", "blud", "safe", "allow it", "say less", "mad ting", "on god".
-If someone disrespects them — reply with roadman energy.
-If it's friendly — keep it London cool.
-Never sound posh. Always sound like a true London roadman.
-Keep it short and cold.
-ALWAYS include emojis that match roadman energy — like 😤 💀 😭 🤣 🔥 💯 — use 1-2 emojis naturally.`,
-
-  Savage: `You are helping someone reply to a message they received.
-You must reply AS THEM — like you ARE that person in their exact situation.
-Read their situation carefully and reply in the most savage, brutally honest way possible.
-Be short, blunt, and hilariously savage. Don't be mean or cruel but be ruthlessly funny.
-If someone insults them — DESTROY them with words 😂
-If someone is being fake — call them out savagely.
-If someone asks something stupid — give the most unbothered reply.
-One line is usually enough. Make it HURT but funny.
-Never hold back. Zero filter.
-ALWAYS end with savage emojis — like 💀 😂 😤 🤣 💅 👋 — use 1-2 emojis for maximum effect.`,
+  Casual: `You are helping someone reply to a message they received. Reply AS THEM in a chill, relaxed, natural way like texting a close friend. Sound real, not robotic.`,
+  Business: `You are helping someone reply to a professional message. Reply AS THEM in a sharp, confident, professional tone. Proper grammar, concise and direct.`,
+  Flirty: `You are helping someone reply to a message from someone they like. Reply AS THEM in a playful, warm, charming way. Tasteful and exciting.`,
+  Aura: `You are helping someone reply to a message. Reply AS THEM with mysterious, calm, unbothered energy. Minimal words, maximum impact.`,
+  Naija: `You are helping a Nigerian person reply to a message. Reply AS THEM in pure Lagos Pidgin English. Sound like a real Lagosian — direct, street-smart, warm. Use real slang: omo, guy, abeg, wahala, e don do, na so e be, shey you get, I no send, make e no vex, chai, shebi, my guy, na lie, e pain me, shey you dey mad. Mix English and Pidgin naturally. Never sound foreign.`,
+  UK: `You are helping someone reply to a message. Reply AS THEM in real London roadman slang. Use: innit, fam, bare, mandem, peak, peng, wagwan, bruv, blud, safe, allow it, say less, on god. Sound like a true London roadman.`,
+  Savage: `You are helping someone reply to a message. Reply AS THEM in the most savage, brutally honest, funny way possible. Short, blunt, zero filter. Make it hurt but funny.`,
 };
 
-// ─── RUBBISH DETECTOR ────────────────────────────────────────────────────────
 function isRubbish(text) {
   const cleaned = text.trim();
   if (cleaned.length < 3) return true;
@@ -100,7 +32,6 @@ function isRubbish(text) {
   return false;
 }
 
-// ─── CALL GROQ ───────────────────────────────────────────────────────────────
 async function callGroq(systemPrompt, userMessage) {
   const response = await fetch(GROQ_URL, {
     method: "POST",
@@ -114,7 +45,7 @@ async function callGroq(systemPrompt, userMessage) {
         { role: "system", content: systemPrompt },
         { role: "user", content: userMessage },
       ],
-      max_tokens: 300,
+      max_tokens: 500,
       temperature: 0.9,
     }),
   });
@@ -128,7 +59,6 @@ async function callGroq(systemPrompt, userMessage) {
   return data.choices[0]?.message?.content?.trim() || "";
 }
 
-// ─── /api/chat ────────────────────────────────────────────────────────────────
 app.post("/api/chat", async (req, res) => {
   const { message, vibe, style } = req.body;
 
@@ -138,41 +68,50 @@ app.post("/api/chat", async (req, res) => {
 
   if (isRubbish(message)) {
     return res.status(200).json({
-      reply: "⚠️ That looks like a typo or random text. Please paste a real message so I can generate a proper reply!",
+      reply: "⚠️ That looks like a typo or random text. Please paste a real message!",
+      coaching: null,
     });
   }
 
   const persona = PERSONA_PROMPTS[style] || PERSONA_PROMPTS["Casual"];
-
   const situationContext = vibe && vibe.trim()
     ? `MY SITUATION: ${vibe.trim()}`
-    : "No extra context provided — just reply naturally based on the message.";
+    : "No extra context provided.";
 
   const userPrompt = `${situationContext}
 
 THE MESSAGE I RECEIVED:
 "${message.trim()}"
 
-Now write a reply for me based on my situation and the message I received.
-Reply ONLY with the message itself — no explanations, no labels, no quotation marks.
-Make it sound like I wrote it myself. Be specific to my situation.
-Include emojis naturally as instructed.`;
+Respond with ONLY a valid JSON object in this exact format, nothing else:
+{
+  "reply": "your reply here",
+  "coaching": {
+    "headline": "one short sentence explaining why this reply works",
+    "emotional_effect": "how this reply makes the other person feel",
+    "strategy": "the communication strategy being used",
+    "confidence_tip": "one tip to sound even more confident"
+  }
+}`;
 
   try {
-    const reply = await callGroq(persona, userPrompt);
-    return res.status(200).json({ reply });
+    const raw = await callGroq(persona, userPrompt);
+    const cleaned = raw.replace(/```json|```/g, "").trim();
+    const parsed = JSON.parse(cleaned);
+    return res.status(200).json({
+      reply: parsed.reply || "",
+      coaching: parsed.coaching || null,
+    });
   } catch (err) {
     console.error("❌ Error:", err.message);
     return res.status(500).json({ error: "Something went wrong. Please try again." });
   }
 });
 
-// ─── HEALTH CHECK ─────────────────────────────────────────────────────────────
 app.get("/", (req, res) => {
   res.json({ status: "✅ Vibe Reply AI backend is running!" });
 });
 
-// ─── START ────────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Vibe Reply AI backend running on port ${PORT}`);
